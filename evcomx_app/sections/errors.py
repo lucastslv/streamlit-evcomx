@@ -154,9 +154,9 @@ def render() -> None:
         ui.render_html(
             """
             <div style="padding-top:0.8rem;">
-            <p style="font-family:'Source Serif 4',Georgia,serif;font-size:1.2rem;line-height:1.4;">
+            <p style="font-family:Arial,'Liberation Sans',sans-serif;font-size:1.2rem;line-height:1.4;">
             O score é útil para ordenar risco, mas não deve ser lido como uma probabilidade exata.</p>
-            <p style="color:#6E685D;font-size:0.9rem;line-height:1.65;">
+            <p style="color:var(--muted);font-size:0.9rem;line-height:1.65;">
             Em faixas altas, a taxa observada sobe; em faixas baixas, cai. A inclinação é a direção certa,
             mas os pontos não estão todos sobre a diagonal. Para decisão operacional, o limiar e o custo
             dos erros importam mais do que o valor absoluto do score.
@@ -210,7 +210,7 @@ def render() -> None:
 
     minutos = f"{filtered['parada_min'].sum():.1f}".replace(".", ",")
     ui.render_html(
-        f"<p style='font-size:0.82rem;color:#6E685D;'>{len(filtered)} casos no filtro · "
+        f"<p style='font-size:0.82rem;color:var(--muted);'>{len(filtered)} casos no filtro · "
         f"{int(filtered['carga_alta'].sum())} eventos reais · {minutos} min de parada.</p>"
     )
 

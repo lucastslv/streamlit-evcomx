@@ -1,10 +1,12 @@
-"""Componentes visuais e CSS editorial do app."""
+"""Componentes visuais e CSS da identidade EVCOMX."""
 
 from __future__ import annotations
 
+import base64
 import html
 import re
 import textwrap
+from functools import lru_cache
 from typing import Iterable
 
 import streamlit as st
@@ -14,22 +16,22 @@ from . import config
 
 CSS = f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
-
 :root {{
     --paper: {config.PAPER};
     --card: {config.CARD};
     --ink: {config.INK};
+    --dark: {config.DARK};
     --muted: {config.MUTED};
     --rule: {config.RULE};
     --red: {config.RED};
+    --red-soft: {config.RED_SOFT};
     --blue: {config.BLUE};
     --green: {config.GREEN};
     --amber: {config.AMBER};
 }}
 
 html, body, [class*="css"] {{
-    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     color: var(--ink);
 }}
 
@@ -54,7 +56,7 @@ header[data-testid="stHeader"] {{
 }}
 
 h1, h2, h3, h4 {{
-    font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     color: var(--ink);
     letter-spacing: -0.015em;
 }}
@@ -96,7 +98,7 @@ a {{
 }}
 
 .brand-title {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 1.9rem;
     line-height: 1.0;
     font-weight: 700;
@@ -155,7 +157,7 @@ a {{
 }}
 
 .hero-title {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: clamp(2.4rem, 5.2vw, 4.6rem);
     line-height: 0.98;
     letter-spacing: -0.045em;
@@ -165,7 +167,7 @@ a {{
 }}
 
 .hero-deck {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: clamp(1.05rem, 1.8vw, 1.35rem);
     line-height: 1.5;
     color: #3E3A32;
@@ -201,7 +203,7 @@ a {{
 }}
 
 .section-title {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: clamp(1.45rem, 2.6vw, 2.05rem);
     line-height: 1.12;
     font-weight: 700;
@@ -218,7 +220,7 @@ a {{
 }}
 
 .chart-title {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 1.03rem;
     font-weight: 700;
     line-height: 1.25;
@@ -266,7 +268,7 @@ a {{
 .kpi.amber {{ border-top-color: var(--amber); }}
 
 .kpi-value {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: clamp(1.65rem, 3vw, 2.35rem);
     line-height: 1.0;
     font-weight: 700;
@@ -349,7 +351,7 @@ a {{
 }}
 
 .risk-number {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 2.7rem;
     line-height: 0.95;
     font-weight: 700;
@@ -419,7 +421,7 @@ a {{
 .band-card.red {{ border-top-color: var(--red); }}
 
 .band-name {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 0.15rem;
@@ -469,7 +471,7 @@ a {{
 }}
 
 .confusion-num {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 1.65rem;
     font-weight: 700;
     line-height: 1.1;
@@ -495,7 +497,7 @@ a {{
 }}
 
 .case-title {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 1.45rem;
     font-weight: 700;
     line-height: 1.1;
@@ -529,7 +531,7 @@ a {{
 }}
 
 .case-stat-value {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 1.25rem;
     font-weight: 700;
 }}
@@ -553,7 +555,7 @@ a {{
 }}
 
 .nav-card .nav-title {{
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
     font-size: 1.2rem;
     font-weight: 700;
     line-height: 1.15;
@@ -653,6 +655,386 @@ div[data-testid="stExpander"] summary {{
         font-size: 2.5rem;
     }}
 }}
+
+/* ---------- EVCOMX brand layer ---------- */
+html, body, [class*="css"], .stMarkdown, p, li, button, input, select, textarea {{
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
+}}
+
+h1, h2, h3, h4, .hero-title, .section-title, .chart-title,
+.kpi-value, .risk-number, .band-name, .case-title, .case-stat-value,
+.nav-card .nav-title, .confusion-num, .brand-title,
+.hero-deck, .hero-meta, .section-deck, .chart-deck, .source,
+.callout, .callout-title, .kpi-label, .kpi-note, .nav-card .nav-text,
+.case-sub, .case-stat-label, .band-card p, .risk-label, .risk-caption,
+.risk-ticks, .brand-sub, .brand-eyebrow, .sidebar-note, .eyebrow,
+.section-num, .pill, .confusion-head, .confusion-sub {{
+    font-family: Arial, 'Liberation Sans', 'Helvetica Neue', Helvetica, sans-serif;
+}}
+
+.stApp {{
+    background: var(--paper);
+}}
+
+a {{ color: var(--red); }}
+
+/* sidebar: capa escura da apresentação */
+[data-testid="stSidebar"] {{
+    background: var(--ink);
+    border-right: none;
+}}
+
+[data-testid="stSidebar"] .brand {{
+    border-bottom: 1px solid #4A5158;
+    padding-bottom: 1.1rem;
+}}
+
+.sidebar-logo {{
+    width: 142px;
+    height: auto;
+    display: block;
+    margin-bottom: 0.9rem;
+}}
+
+.brand-eyebrow {{
+    color: var(--red);
+    letter-spacing: 0.18em;
+}}
+
+.brand-title {{
+    color: #FFFFFF;
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
+}}
+
+.brand-sub {{
+    color: #C4C4C4;
+}}
+
+[data-testid="stSidebar"] [role="radiogroup"] label p {{
+    color: #E8E8E8;
+}}
+
+[data-testid="stSidebar"] [role="radiogroup"] label:hover {{
+    background: rgba(255, 255, 255, 0.08);
+}}
+
+[data-testid="stSidebar"] [role="radiogroup"] label[data-checked="true"] p,
+[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p {{
+    color: #FFFFFF;
+    font-weight: 700;
+}}
+
+[data-testid="stSidebar"] .sidebar-note {{
+    color: #C4C4C4;
+    border-top: 1px solid #4A5158;
+}}
+
+/* hero: capa EVCOMX no Overview, faixa branca nas demais páginas */
+.hero {{
+    border-top: 6px solid var(--red);
+    padding-top: 0.9rem;
+    margin-bottom: 2.2rem;
+}}
+
+.hero-top {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}}
+
+.hero-brand {{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+}}
+
+.hero-logo {{
+    width: 108px;
+    height: auto;
+    display: block;
+}}
+
+.hero-tagline {{
+    font-size: 0.56rem;
+    letter-spacing: 0.18em;
+    color: #FFFFFF;
+    font-weight: 400;
+    white-space: nowrap;
+}}
+
+.eyebrow {{
+    color: var(--red);
+    letter-spacing: 0.17em;
+    margin-bottom: 0;
+}}
+
+.hero-title {{
+    font-size: clamp(2rem, 4.2vw, 3.45rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0 0 0.9rem 0;
+}}
+
+.hero-deck {{
+    font-size: clamp(1rem, 1.6vw, 1.16rem);
+    line-height: 1.55;
+    color: var(--muted);
+}}
+
+.hero-meta {{
+    color: var(--muted);
+}}
+
+.hero.cover {{
+    background: var(--ink);
+    border-top: none;
+    padding: 1.25rem 1.5rem 2.1rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+}}
+
+.hero.cover::before {{
+    content: "";
+    position: absolute;
+    width: 58%;
+    height: 260%;
+    top: -92%;
+    right: -10%;
+    background: var(--red);
+    transform: rotate(24deg);
+}}
+
+.hero.cover::after {{
+    content: "";
+    position: absolute;
+    width: 36%;
+    height: 190%;
+    bottom: -112%;
+    left: -12%;
+    background: var(--red);
+    transform: rotate(24deg);
+    opacity: 0.92;
+}}
+
+.hero.cover > * {{
+    position: relative;
+    z-index: 1;
+}}
+
+.hero.cover .hero-title,
+.hero.cover .hero-deck,
+.hero.cover .hero-meta {{
+    color: #FFFFFF;
+}}
+
+.hero.cover .hero-title {{
+    max-width: 840px;
+}}
+
+.hero.cover .hero-deck {{
+    color: #FFFFFF;
+    max-width: 720px;
+}}
+
+.hero.cover .hero-meta {{
+    color: #FFFFFF;
+    opacity: 0.85;
+}}
+
+.hero.cover .eyebrow {{
+    color: #FFFFFF;
+}}
+
+.hero.cover .hero-logo {{
+    width: 132px;
+}}
+
+/* seções e títulos */
+.section-head {{
+    border-top: 1px solid var(--rule);
+}}
+
+.section-num {{
+    color: var(--red);
+    font-size: 0.72rem;
+}}
+
+.section-title {{
+    font-size: clamp(1.22rem, 2.1vw, 1.72rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--ink);
+}}
+
+.section-deck, .chart-deck, .source {{
+    color: var(--muted);
+}}
+
+.chart-title {{
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}}
+
+/* cards: cinza claro com régua laranja, como nos slides */
+.kpi, .risk-wrap, .band-card, .case-card, .nav-card {{
+    background: var(--card);
+    border: none;
+    border-top: 4px solid var(--red);
+    border-radius: 0;
+}}
+
+.kpi.red, .kpi.blue, .kpi.green, .kpi.amber {{
+    border-top-color: var(--red);
+}}
+
+.kpi-value {{
+    color: var(--red);
+    font-size: clamp(1.8rem, 3.1vw, 2.45rem);
+    letter-spacing: -0.02em;
+}}
+
+.kpi-label {{
+    font-size: 0.8rem;
+    font-weight: 700;
+}}
+
+.kpi-note {{
+    color: var(--muted);
+}}
+
+.nav-card .nav-kicker,
+.case-stat-label,
+.band-range {{
+    color: var(--red);
+}}
+
+.nav-card .nav-title,
+.case-title,
+.band-name {{
+    color: var(--ink);
+}}
+
+.band-card.green {{ border-top-color: var(--green); }}
+.band-card.amber {{ border-top-color: var(--amber); }}
+.band-card.red {{ border-top-color: var(--red); }}
+
+.band-card p, .nav-card .nav-text, .case-sub {{
+    color: var(--muted);
+}}
+
+/* callouts: barras escuras para decisões, cinza para leitura */
+.callout {{
+    background: var(--card);
+    border: none;
+    border-left: 6px solid var(--ink);
+    border-radius: 0;
+}}
+
+.callout.red {{
+    background: var(--ink);
+    color: #FFFFFF;
+    border-left-color: var(--red);
+}}
+
+.callout.red .callout-title {{
+    color: var(--red);
+}}
+
+.callout.amber {{ border-left-color: var(--amber); }}
+.callout.green {{ border-left-color: var(--green); }}
+.callout.blue {{ border-left-color: var(--ink); }}
+
+.callout-title {{
+    color: var(--muted);
+    letter-spacing: 0.12em;
+}}
+
+/* matriz e demais componentes */
+.confusion-cell {{
+    background: var(--card);
+    border: none;
+    border-top: 3px solid var(--rule);
+}}
+
+.confusion-cell.tn {{ background: #E6E6E6; border-top-color: var(--gray); }}
+.confusion-cell.tp {{ background: var(--red-soft, #FFD8CC); border-top-color: var(--red); }}
+.confusion-cell.fp {{ background: #F4E3B8; border-top-color: var(--amber); }}
+.confusion-cell.fn {{ background: #F0F0F0; border-top-color: var(--ink); }}
+
+.confusion-num {{
+    font-size: 1.55rem;
+}}
+
+.risk-marker {{ background: var(--ink); }}
+
+.risk-number, .case-stat-value {{
+    color: var(--red);
+}}
+
+/* widgets */
+.stButton > button {{
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #FFFFFF;
+    border-radius: 0;
+    font-family: Arial, 'Liberation Sans', sans-serif;
+    font-weight: 700;
+}}
+
+.stButton > button:hover {{
+    background: var(--red);
+    border-color: var(--red);
+}}
+
+.stDownloadButton > button {{
+    border-radius: 0;
+    border-color: var(--rule);
+    color: var(--ink);
+}}
+
+div[data-testid="stExpander"] {{
+    background: #F7F7F7;
+    border: 1px solid var(--rule);
+    border-radius: 0;
+}}
+
+div[data-testid="stDataFrame"] {{
+    border: 1px solid var(--rule);
+}}
+
+.stTabs [aria-selected="true"] {{
+    color: var(--red);
+    border-bottom-color: var(--red);
+}}
+
+.stSelectbox label, .stNumberInput label, .stSlider label, .stRadio label {{
+    color: var(--muted) !important;
+}}
+
+/* responsivo */
+@media (max-width: 760px) {{
+    .hero.cover {{
+        padding: 1rem 1rem 1.6rem 1rem;
+    }}
+    .hero-title {{
+        font-size: 2.15rem;
+    }}
+    .hero-logo {{
+        width: 88px;
+    }}
+    .hero.cover .hero-logo {{
+        width: 100px;
+    }}
+}}
 </style>
 """
 
@@ -675,12 +1057,39 @@ def esc(value: object) -> str:
     return html.escape(str(value))
 
 
-def hero(eyebrow: str, title: str, deck: str, meta: str | None = None) -> None:
+@lru_cache(maxsize=4)
+def logo_data_uri(variant: str = "dark") -> str:
+    path = config.ASSETS / f"evcomx_logo_{variant}.png"
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
+def hero(
+    eyebrow: str,
+    title: str,
+    deck: str,
+    meta: str | None = None,
+    *,
+    variant: str = "light",
+) -> None:
     meta_html = f'<div class="hero-meta">{esc(meta)}</div>' if meta else ""
+    logo = logo_data_uri("white" if variant == "cover" else "dark")
+    variant_class = " cover" if variant == "cover" else ""
+    tagline = (
+        '<div class="hero-tagline">VIVEMOS GRANDES INDÚSTRIAS</div>'
+        if variant == "cover"
+        else ""
+    )
     render_html(
         f"""
-        <div class="hero">
-            <div class="eyebrow">{esc(eyebrow)}</div>
+        <div class="hero{variant_class}">
+            <div class="hero-top">
+                <div class="eyebrow">{esc(eyebrow)}</div>
+                <div class="hero-brand">
+                    <img class="hero-logo" src="{logo}" alt="EVCOMX">
+                    {tagline}
+                </div>
+            </div>
             <div class="hero-title">{esc(title)}</div>
             <div class="hero-deck">{esc(deck)}</div>
             {meta_html}

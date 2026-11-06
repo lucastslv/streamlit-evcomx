@@ -1,4 +1,4 @@
-"""Caminhos, constantes e paleta editorial do app."""
+"""Caminhos, constantes e paleta da identidade visual EVCOMX."""
 
 from __future__ import annotations
 
@@ -21,31 +21,33 @@ MODELS = PROJETO_BOOTCAMP / "models"
 APP_DATA = ROOT / "data" / "app"
 APP_MODELS = ROOT / "models"
 APP_MODEL_PATH = APP_MODELS / "app_simulator.joblib"
+ASSETS = ROOT / "evcomx_app" / "assets"
 
-# Paleta semântica, inspirada na leitura editorial do NYT:
-# papel quente, tinta, vermelho para evento/risco, azul para contexto,
-# verde para operação segura e âmbar para atenção.
-PAPER = "#F6F2E9"
-CARD = "#FFFCF5"
-INK = "#1C1B18"
-MUTED = "#6E685D"
-RULE = "#DCD4C4"
-LIGHT = "#E9E2D4"
-RED = "#B6452F"
-RED_SOFT = "#E8C4B8"
-BLUE = "#2E657C"
-BLUE_SOFT = "#C9DCE3"
-GREEN = "#2E7356"
-GREEN_SOFT = "#CDE0D6"
-AMBER = "#B98319"
-AMBER_SOFT = "#EAD7AC"
-GRAY = "#989184"
-GRAY_SOFT = "#DAD5CA"
+# Identidade visual EVCOMX, extraída do tema da apresentação final:
+# carvão (#2F363E), laranja (#FF4000), cinzas neutros e branco.
+PAPER = "#FFFFFF"
+CARD = "#F0F0F0"
+INK = "#2F363E"
+DARK = "#182028"
+MUTED = "#6B7076"
+RULE = "#D9D9D9"
+LIGHT = "#E6E6E6"
+RED = "#FF4000"
+RED_SOFT = "#FFD8CC"
+BLUE = "#2F5D73"
+BLUE_SOFT = "#DCE6EA"
+GREEN = "#2E7D5B"
+GREEN_SOFT = "#D8E8E0"
+AMBER = "#C58A00"
+AMBER_SOFT = "#F4E3B8"
+GRAY = "#8A9096"
+GRAY_SOFT = "#E4E5E6"
 
 COLORS = {
     "paper": PAPER,
     "card": CARD,
     "ink": INK,
+    "dark": DARK,
     "muted": MUTED,
     "rule": RULE,
     "light": LIGHT,

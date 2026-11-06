@@ -1,6 +1,6 @@
 # Carga Alta · EVCOMX
 
-App editorial em Streamlit sobre a predição de **carga alta** no forno elétrico a arco da EVCOMX.
+App em Streamlit sobre a predição de **carga alta** no forno elétrico a arco da EVCOMX, com a identidade visual da apresentação final.
 A leitura parte dos dados de EDA em `dados-bootcamp/` e das evidências de modelagem em
 `projeto-bootcamp/`: 1.799 corridas, 43.405 camadas, 3.501 cestos com composição e um holdout
 temporal de 352 cestos.
@@ -57,6 +57,13 @@ Para deploy em VM com HTTPS (Caddy) e no Streamlit Community Cloud, veja
 Esses arquivos já estão versionados no diretório para o app abrir sem treinar nada. O script
 `scripts/train_simulator.py` reproduz exatamente os mesmos artefatos.
 
+## Identidade visual
+
+A interface segue a identidade da apresentação final da EVCOMX: carvão `#2F363E`,
+laranja `#FF4000`, cinzas neutros, tipografia Arial e o logo EVCOMX em
+`evcomx_app/assets/`. A capa da Visão geral retoma as diagonais da capa do PPTX;
+as demais páginas usam a faixa branca com régua laranja dos slides de conteúdo.
+
 ## Apoio à apresentação final
 
 A pasta `apresentacao/` reúne o material para o bloco de 15 minutos + 10 de perguntas:
@@ -77,7 +84,8 @@ evcomx_app/
   features.py                  engenharia de atributos (base + simulador)
   simulator.py                 modelo didático, explicabilidade e percentis
   charts.py                    gráficos Plotly
-  ui.py                        CSS e componentes editoriais
+  ui.py                        CSS e componentes da identidade EVCOMX
+  assets/                      logos EVCOMX (claro e escuro)
   sections/                    uma seção por página
 scripts/train_simulator.py     treino do modelo didático
 data/app/                      artefatos do simulador

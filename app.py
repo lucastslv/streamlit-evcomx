@@ -1,4 +1,4 @@
-"""EVCOMX — app editorial sobre carga alta no forno elétrico a arco."""
+"""EVCOMX — app sobre carga alta no forno elétrico a arco."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from evcomx_app.sections import business, diagnosis, errors, method, model, over
 
 st.set_page_config(
     page_title="Carga Alta · EVCOMX",
-    page_icon="🔥",
+    page_icon=str(config.ASSETS / "evcomx_logo_dark.png"),
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -29,8 +29,9 @@ def _sync_nav() -> None:
 
 with st.sidebar:
     ui.render_html(
-        """
+        f"""
         <div class="brand">
+            <img class="sidebar-logo" src="{ui.logo_data_uri('white')}" alt="EVCOMX">
             <div class="brand-eyebrow">EVCOMX · BOOTCAMP</div>
             <div class="brand-title">Carga Alta</div>
             <div class="brand-sub">Dados, risco e decisão no pátio de metálicos.</div>

@@ -61,20 +61,20 @@ def render() -> None:
     ui.render_html(
         """
         <div style="display:grid;grid-template-columns:1.6fr 0.9fr 0.7fr;gap:6px;margin:0.6rem 0 0.3rem 0;">
-            <div style="background:#E9E2D4;padding:1rem;border-top:4px solid #1C1B18;">
-                <div style="font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:#6E685D;font-weight:700;">Treino · 75%</div>
-                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:1.7rem;font-weight:700;">1.349 corridas</div>
-                <div style="font-size:0.8rem;color:#6E685D;line-height:1.45;">Ajuste dos modelos, seleção de atributos e validação cruzada agrupada por corrida.</div>
+            <div style="background:var(--card);padding:1rem;border-top:4px solid var(--ink);">
+                <div style="font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);font-weight:700;">Treino · 75%</div>
+                <div style="font-family:Arial,'Liberation Sans',sans-serif;font-size:1.7rem;font-weight:700;">1.349 corridas</div>
+                <div style="font-size:0.8rem;color:var(--muted);line-height:1.45;">Ajuste dos modelos, seleção de atributos e validação cruzada agrupada por corrida.</div>
             </div>
-            <div style="background:#EFE9DC;padding:1rem;border-top:4px solid #2E657C;">
-                <div style="font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:#6E685D;font-weight:700;">Validação · 15%</div>
-                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:1.7rem;font-weight:700;">270 corridas</div>
-                <div style="font-size:0.8rem;color:#6E685D;line-height:1.45;">Escolha do limiar operacional e checagem fora do tempo.</div>
+            <div style="background:var(--card);padding:1rem;border-top:4px solid var(--blue);">
+                <div style="font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);font-weight:700;">Validação · 15%</div>
+                <div style="font-family:Arial,'Liberation Sans',sans-serif;font-size:1.7rem;font-weight:700;">270 corridas</div>
+                <div style="font-size:0.8rem;color:var(--muted);line-height:1.45;">Escolha do limiar operacional e checagem fora do tempo.</div>
             </div>
-            <div style="background:#F4DDD5;padding:1rem;border-top:4px solid #B6452F;">
-                <div style="font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:#6E685D;font-weight:700;">Teste · 10%</div>
-                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:1.7rem;font-weight:700;">180 corridas</div>
-                <div style="font-size:0.8rem;color:#6E685D;line-height:1.45;">352 cestos e 57 eventos. Intocado até a avaliação final.</div>
+            <div style="background:var(--red-soft);padding:1rem;border-top:4px solid var(--red);">
+                <div style="font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);font-weight:700;">Teste · 10%</div>
+                <div style="font-family:Arial,'Liberation Sans',sans-serif;font-size:1.7rem;font-weight:700;">180 corridas</div>
+                <div style="font-size:0.8rem;color:var(--muted);line-height:1.45;">352 cestos e 57 eventos. Intocado até a avaliação final.</div>
             </div>
         </div>
         """
@@ -109,7 +109,7 @@ def render() -> None:
         ui.chart_header("Matriz de confusão no limiar 0,45")
         ui.confusion_matrix(m45["tn"], m45["fp"], m45["fn"], m45["vp"])
         ui.render_html(
-            f"<p style='font-size:0.82rem;color:#6E685D;line-height:1.55;'>"
+            f"<p style='font-size:0.82rem;color:var(--muted);line-height:1.55;'>"
             f"O modelo antecipa <strong>{m45['vp_min_share']:.0%} do tempo de parada</strong> "
             f"({_fmt(m45['vp_min'])} de {_fmt(m45['total_min'])} min). "
             f"Os falsos positivos são {m45['fp']} alertas sem evento; cada um custa uma checagem no pátio.</p>"

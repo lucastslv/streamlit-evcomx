@@ -466,7 +466,7 @@ def render() -> None:
             delta_txt = f"{delta:+.1%}".replace(".", ",") if pd.notna(delta) else "—"
             oficial_txt = f"{preset['oficial']:.1%}".replace(".", ",")
             ui.render_html(
-                f"<p style='font-size:0.78rem;color:#6E685D;line-height:1.55;margin-top:0.7rem;'>"
+                f"<p style='font-size:0.78rem;color:var(--muted);line-height:1.55;margin-top:0.7rem;'>"
                 f"Caso de origem: <strong>{preset['corrida']} · cesto {preset['basket']}</strong> · "
                 f"score oficial do ensemble <strong>{oficial_txt}</strong> · desfecho real: <strong>{real_txt}</strong>"
                 + (f" · parada de <strong>{preset['parada_s']/60:.1f} min</strong>".replace(".", ",") if preset["parada_s"] else "")

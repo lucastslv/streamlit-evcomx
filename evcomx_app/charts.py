@@ -1,4 +1,4 @@
-"""Gráficos Plotly com leitura editorial: título fora, grade discreta, anotação direta."""
+"""Gráficos Plotly com a leitura visual EVCOMX: título fora, grade discreta, anotação direta."""
 
 from __future__ import annotations
 
@@ -16,8 +16,12 @@ def _base(fig: go.Figure, height: int = 340, showlegend: bool = False) -> go.Fig
         margin=dict(l=48, r=18, t=12, b=12),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, Helvetica, Arial, sans-serif", size=12, color=config.INK),
-        hoverlabel=dict(bgcolor=config.CARD, font=dict(color=config.INK, size=12)),
+        font=dict(family="Arial, 'Liberation Sans', Helvetica, sans-serif", size=12, color=config.INK),
+        hoverlabel=dict(
+            bgcolor=config.CARD,
+            bordercolor=config.RULE,
+            font=dict(family="Arial, 'Liberation Sans', Helvetica, sans-serif", color=config.INK, size=12),
+        ),
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -91,7 +95,7 @@ def monthly_rate(df: pd.DataFrame) -> go.Figure:
             mode="lines",
             line=dict(width=0),
             fill="tonexty",
-            fillcolor="rgba(182,69,47,0.12)",
+            fillcolor="rgba(255,64,0,0.12)",
             hoverinfo="skip",
             showlegend=False,
         )
@@ -497,7 +501,7 @@ def pr_curve(df: pd.DataFrame, ap: float, threshold: float = 0.45) -> go.Figure:
         yref="paper",
         text=f"PR-AUC = {ap:.3f}".replace(".", ","),
         showarrow=False,
-        font=dict(size=12, color=config.INK, family="Source Serif 4, Georgia, serif"),
+        font=dict(size=12, color=config.INK, family="Arial, 'Liberation Sans', Helvetica, sans-serif"),
         bgcolor=config.CARD,
         bordercolor=config.RULE,
         borderwidth=1,

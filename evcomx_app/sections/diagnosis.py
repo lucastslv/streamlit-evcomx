@@ -128,10 +128,10 @@ def render() -> None:
         ui.render_html(
             f"""
             <div style="padding-top:1.2rem;">
-            <p style="font-family:'Source Serif 4',Georgia,serif;font-size:1.15rem;line-height:1.45;">
+            <p style="font-family:Arial,'Liberation Sans',sans-serif;font-size:1.15rem;line-height:1.45;">
             O volume mediano é praticamente o mesmo com e sem carga alta. A diferença aparece na
             <strong>composição</strong> e na <strong>densidade efetiva</strong>.</p>
-            <p style="color:#6E685D;font-size:0.9rem;line-height:1.65;">
+            <p style="color:var(--muted);font-size:0.9rem;line-height:1.65;">
             No cesto 2, a mediana de pesado cai de 24,1% para 15,0% quando há evento.
             No cesto 1, a queda é menor: de 32,1% para 29,0%. Isso é associação, não prova de que mudar a receita reduz o evento.
             </p>
@@ -180,9 +180,9 @@ def render() -> None:
         ui.render_html(
             """
             <div style="padding-top:1.3rem;">
-            <p style="font-family:'Source Serif 4',Georgia,serif;font-size:1.3rem;line-height:1.4;">
+            <p style="font-family:Arial,'Liberation Sans',sans-serif;font-size:1.3rem;line-height:1.4;">
             O missing do cesto 2 é um sinal operacional, não um detalhe de planilha.</p>
-            <p style="color:#6E685D;font-size:0.9rem;line-height:1.65;">
+            <p style="color:var(--muted);font-size:0.9rem;line-height:1.65;">
             Corridas com dois cestos registrados têm 28,8% de evento (491 de 1.702). Sem o registro do cesto 2,
             a taxa sobe para 51,5% (50 de 97). Parte disso pode refletir operação com cesto único e mais gusa líquido;
             o dado não permite separar causas.

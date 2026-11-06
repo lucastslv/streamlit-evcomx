@@ -39,6 +39,7 @@ def render() -> None:
         "para o pátio agir em minutos, não depois.",
         f"{s['n_corridas']:,} corridas · {s['n_cestos']:,} cestos com composição · "
         f"{s['periodo_inicio']} a {s['periodo_fim']} · leitura observacional".replace(",", "."),
+        variant="cover",
     )
 
     ui.kpi_row(
@@ -149,14 +150,14 @@ def render() -> None:
         ui.render_html(
             """
             <div style="padding-top:1.4rem;">
-            <p style="font-family:'Source Serif 4',Georgia,serif;font-size:1.35rem;line-height:1.35;">
+            <p style="font-family:Arial,'Liberation Sans',sans-serif;font-size:1.35rem;line-height:1.35;">
             <strong>−3,1 p.p.</strong> no cesto 1.<br>
             <strong>−9,1 p.p.</strong> no cesto 2.</p>
-            <p style="color:#6E685D;font-size:0.9rem;line-height:1.6;">
+            <p style="color:var(--muted);font-size:0.9rem;line-height:1.6;">
             A diferença é maior no segundo cesto. O volume mediano, por outro lado, fica quase igual:
             +0,6 m³ no cesto 1 e −0,1 m³ no cesto 2.
             </p>
-            <p style="color:#6E685D;font-size:0.9rem;line-height:1.6;">
+            <p style="color:var(--muted);font-size:0.9rem;line-height:1.6;">
             É essa combinação — massa, densidade, proporção de classes e ordem das camadas — que o modelo usa.
             </p>
             </div>
@@ -191,7 +192,7 @@ def render() -> None:
         ui.chart_header("A matriz de confusão do teste", "352 cestos; 57 eventos reais.")
         ui.confusion_matrix(m["tn"], m["fp"], m["fn"], m["vp"])
         ui.render_html(
-            f"<p style='font-size:0.82rem;color:#6E685D;line-height:1.55;'>"
+            f"<p style='font-size:0.82rem;color:var(--muted);line-height:1.55;'>"
             f"O modelo avisou <strong>{m['vp']} de {m['eventos']} eventos</strong> e antecipou "
             f"<strong>{m['vp_min_share']:.0%} de todo o tempo de parada</strong> "
             f"({_br(m['vp_min'])} de {_br(m['total_min'])} min). "
