@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pandas as pd
 import streamlit as st
 
 from .. import charts, config, data, ui
@@ -93,14 +92,14 @@ def render() -> None:
             {"value": _pct(m45["recall"]), "label": "recall", "note": f"{m45['vp']} de {m45['eventos']} eventos avisados", "tone": "red"},
             {"value": _pct(m45["precision"]), "label": "precisão", "note": f"{m45['alerts']} alertas; {m45['fp']} falsos positivos", "tone": "amber"},
             {"value": _num(m45["f2"]), "label": "F2-score", "note": "peso maior para recall", "tone": "blue"},
-            {"value": "0,327", "label": "PR-AUC", "note": "prevalência no teste: 16,2%", "tone": "blue"},
-            {"value": "0,669", "label": "ROC-AUC", "note": "0,189 de Brier", "tone": "blue"},
+            {"value": _num(m45["pr_auc"]), "label": "PR-AUC", "note": f"prevalência no teste: {_pct(m45['prevalencia'])}", "tone": "blue"},
+            {"value": _num(m45["roc_auc"]), "label": "ROC-AUC", "note": f"{_num(m45['brier'])} de Brier", "tone": "blue"},
         ]
     )
     ui.callout(
-        "Em linguagem de gestão: <strong>de cada 10 cargas altas, o modelo avisa 6</strong>. "
-        "De cada 10 alertas, 2,6 eram carga alta; os outros 7,4 custam uma checagem no pátio. "
-        "O teste foi feito nas corridas mais recentes, que o modelo nunca viu.",
+        f"Em linguagem de gestão: <strong>de cada 10 cargas altas, o modelo avisa {m45['recall'] * 10:.0f}</strong>. "
+        f"De cada 10 alertas, {m45['precision'] * 10:.1f} eram carga alta; os outros {10 - m45['precision'] * 10:.1f} "
+        "custam uma checagem no pátio. O teste foi feito nas corridas mais recentes, que o modelo nunca viu.".replace(".", ","),
         kind="blue",
         title="Traduzindo as métricas",
     )
@@ -111,8 +110,9 @@ def render() -> None:
         ui.confusion_matrix(m45["tn"], m45["fp"], m45["fn"], m45["vp"])
         ui.render_html(
             f"<p style='font-size:0.82rem;color:#6E685D;line-height:1.55;'>"
-            f"O modelo antecipa <strong>69% do tempo de parada</strong> (120,8 de 176,3 min). "
-            f"Os falsos positivos são 95 alertas sem evento; cada um custa uma checagem no pátio.</p>"
+            f"O modelo antecipa <strong>{m45['vp_min_share']:.0%} do tempo de parada</strong> "
+            f"({_fmt(m45['vp_min'])} de {_fmt(m45['total_min'])} min). "
+            f"Os falsos positivos são {m45['fp']} alertas sem evento; cada um custa uma checagem no pátio.</p>"
         )
     with right:
         ui.chart_header(
@@ -120,16 +120,18 @@ def render() -> None:
             "O ponto operacional fica no joelho da curva; o limiar escolhido privilegia recall.",
         )
         st.plotly_chart(
-            charts.pr_curve(data.pr_curve(), ap=0.327),
+            charts.pr_curve(data.pr_curve(), ap=m45["pr_auc"]),
             width="stretch",
             config={"displayModeBar": False},
         )
-        ui.source("Fonte: 05_casos_para_investigar.csv. PR-AUC = 0,327; ROC-AUC = 0,669.")
+        ui.source(
+            f"Fonte: 05_casos_para_investigar.csv. PR-AUC = {_num(m45['pr_auc'])}; ROC-AUC = {_num(m45['roc_auc'])}."
+        )
 
     ui.callout(
-        "A alternativa simples — alertar pelo volume do cestão — dispara <strong>291 alarmes falsos</strong> no teste; "
-        "o ensemble, <strong>95</strong>. A PR-AUC é <strong>0,327 contra 0,154</strong>. O ganho vem de combinar "
-        "composição, densidade e ordem das camadas, não de olhar mais volume.",
+        f"A alternativa simples — alertar pelo volume do cestão — dispara <strong>291 alarmes falsos</strong> no teste; "
+        f"o ensemble, <strong>{m45['fp']}</strong>. A PR-AUC é <strong>{_num(m45['pr_auc'])} contra 0,154</strong>. "
+        "O ganho vem de combinar composição, densidade e ordem das camadas, não de olhar mais volume.",
         kind="amber",
         title="Comparação com a alternativa simples",
     )
@@ -180,10 +182,10 @@ def render() -> None:
         )
         ui.source("Fonte: 05_casos_para_investigar.csv. Reclassificação dos 352 cestos do holdout.")
 
-    with st.expander("Ver as estratégias de limiar da versão revisada (v2)"):
+    with st.expander("Ver as estratégias de limiar no holdout"):
         st.caption(
-            "Esta tabela é da versão revisada, que removeu três atributos com suspeita de disponibilidade tardia. "
-            "O explorador acima usa os scores do ensemble original; as duas escalas não são idênticas."
+            "A tabela varre o limiar no teste para mostrar o trade-off. O explorador acima usa os mesmos scores; "
+            "aqui as estratégias são fixadas por regra (maior F2 ou recall mínimo)."
         )
         limiares = data.threshold_comparison().copy()
         limiares = limiares.rename(
@@ -210,7 +212,10 @@ def render() -> None:
                 "F2": st.column_config.NumberColumn(format="%.3f"),
             },
         )
-        ui.source("Fonte: 11_comparacao_limiares.csv (versão revisada v2). A escolha foi feita na validação; o teste é apenas leitura.")
+        ui.source(
+            "Fonte: 11_comparacao_limiares.csv (rodada atual). O limiar operacional escolhido é 0,45; "
+            "as linhas são cenários de referência, não a decisão final."
+        )
 
     ui.section(
         "05",
@@ -285,12 +290,13 @@ def render() -> None:
         },
     )
     ui.source(
-        "Fonte: 10_comparacao_ensemble_original_vs_v2.csv. A versão revisada remove rendimento_efetivo, "
-        "energia_especifica e duracao_montagem_min; o limiar 0,205 foi escolhido na validação."
+        "Fonte: 10_comparacao_ensemble_original_vs_v2.csv. A versão revisada é a rodada anterior e remove "
+        "rendimento_efetivo, energia_especifica e duracao_montagem_min; o limiar 0,205 foi escolhido na validação."
     )
     ui.callout(
-        "A versão revisada mantém PR-AUC semelhante, mas com muito mais alertas (recall 96,5% e 264 falsos positivos). "
-        "Ela ilustra o trade-off: mais sensibilidade, mais checagem no pátio. A decisão depende do custo operacional.",
+        f"A versão revisada da rodada anterior tem PR-AUC 0,345, próxima do ensemble atual ({_num(m45['pr_auc'])}), "
+        "mas, no limiar escolhido na validação (0,205), dispara 319 alertas e 264 falsos positivos. No limiar 0,45, "
+        "são 98 falsos positivos. O trade-off é o mesmo: mais sensibilidade, mais checagem no pátio.",
         kind="amber",
         title="O que a comparação mostra",
     )
@@ -311,6 +317,132 @@ def render() -> None:
 
     ui.section(
         "07",
+        "A robustez sustenta a leitura — com limites.",
+        "Teste de sanidade, intervalos de confiança, ruído de pesagem, walk-forward e deriva de composição. "
+        "São checagens para saber onde o número é firme e onde ele é frágil.",
+    )
+    ic = data.confidence_intervals()
+    wf = data.walk_forward()
+    drift = data.drift_table()
+    left, right = st.columns([1.05, 0.95], gap="large")
+    with left:
+        ui.chart_header(
+            "Os intervalos de confiança são largos.",
+            "Bootstrap com 250 reamostragens no holdout. A incerteza é parte do resultado, não um detalhe.",
+        )
+        if not ic.empty:
+            st.plotly_chart(
+                charts.confidence_chart(ic),
+                width="stretch",
+                config={"displayModeBar": False},
+            )
+        ui.source("Fonte: 07_intervalos_confianca.csv. IC 95% por reamostragem dos 352 cestos.")
+    with right:
+        ui.chart_header(
+            "O walk-forward mostra a queda no bloco 5.",
+            "Treino nos blocos anteriores, teste no bloco seguinte. É o teste mais duro de generalização temporal.",
+        )
+        if not wf.empty:
+            st.plotly_chart(
+                charts.walk_forward_chart(wf),
+                width="stretch",
+                config={"displayModeBar": False},
+            )
+        ui.source("Fonte: 08_walk_forward.csv. Cinco janelas cronológicas; sem reajuste de limiar.")
+
+    c1, c2 = st.columns(2, gap="large")
+    with c1:
+        ui.callout(
+            "Com o alvo embaralhado, o ROC-AUC cai para <strong>0,503</strong> e o PR-AUC para "
+            "<strong>0,161</strong> — o nível do acaso e da prevalência. O pipeline não está vazando o desfecho.",
+            kind="blue",
+            title="Teste de sanidade",
+        )
+    with c2:
+        ui.callout(
+            "Com <strong>±5% de ruído</strong> na pesagem, o ROC-AUC vai de <strong>0,687</strong> para "
+            "<strong>0,669</strong>; a correlação entre os scores é <strong>0,857</strong>. O sinal resiste a erro de balança.",
+            kind="amber",
+            title="Robustez ao ruído",
+        )
+
+    with st.expander("Deriva de composição entre treino e teste"):
+        if drift.empty:
+            st.info("Tabela de drift não disponível.")
+        else:
+            show_drift = drift.copy()
+            show_drift["Mediana (Treino)"] = show_drift["Mediana (Treino)"].map(lambda x: f"{x:.3f}".replace(".", ","))
+            show_drift["Mediana (Teste)"] = show_drift["Mediana (Teste)"].map(lambda x: f"{x:.3f}".replace(".", ","))
+            show_drift["Estatística KS"] = show_drift["Estatística KS"].map(lambda x: f"{x:.3f}".replace(".", ","))
+            show_drift["p-valor KS"] = show_drift["p-valor KS"].map(lambda x: f"{x:.1e}".replace(".", ","))
+            st.dataframe(show_drift, width="stretch", hide_index=True)
+            st.caption(
+                "O teste KS rejeita estabilidade em todas as cinco variáveis. A receita mudou: "
+                "a mediana de pesado caiu de 31,3% para 20,3%; a densidade, de 0,847 para 0,742 t/m³."
+            )
+        ui.source("Fonte: 09_drift.csv. KS bicaudal; p < 0,01 é marcado como atenção.")
+
+    with st.expander("Comparação completa dos modelos no teste"):
+        models_test = data.model_comparison_test()
+        if models_test.empty:
+            st.info("Tabela de modelos não disponível.")
+        else:
+            st.dataframe(
+                models_test,
+                width="stretch",
+                hide_index=True,
+                column_config={
+                    "PR-AUC": st.column_config.NumberColumn(format="%.3f"),
+                    "ROC-AUC": st.column_config.NumberColumn(format="%.3f"),
+                    "Recall @ limiar": st.column_config.NumberColumn(format="%.3f"),
+                    "Precisão @ limiar": st.column_config.NumberColumn(format="%.3f"),
+                    "F1": st.column_config.NumberColumn(format="%.3f"),
+                    "F2": st.column_config.NumberColumn(format="%.3f"),
+                    "Balanced Acc": st.column_config.NumberColumn(format="%.3f"),
+                    "MCC": st.column_config.NumberColumn(format="%.3f"),
+                    "Brier": st.column_config.NumberColumn(format="%.3f"),
+                },
+            )
+            st.caption(
+                "O ensemble lidera em PR-AUC e F2. O gradient boosting tem Brier menor, mas menos recall no limiar operacional."
+            )
+        ui.source("Fonte: 13_comparacao_modelos_teste.csv. Mesmo holdout de 352 cestos.")
+
+    with st.expander("Validação temporal e comparação de conjuntos de atributos"):
+        validacao = data.validation_comparison()
+        conjuntos = data.feature_set_comparison()
+        if not validacao.empty:
+            st.dataframe(
+                validacao,
+                width="stretch",
+                hide_index=True,
+                column_config={
+                    "PR-AUC (Val Temporal)": st.column_config.NumberColumn(format="%.3f"),
+                    "ROC-AUC (Val Temporal)": st.column_config.NumberColumn(format="%.3f"),
+                    "F2-Score (Val Temporal)": st.column_config.NumberColumn(format="%.3f"),
+                    "Limiar (Val)": st.column_config.NumberColumn(format="%.3f"),
+                },
+            )
+        if not conjuntos.empty:
+            st.dataframe(
+                conjuntos,
+                width="stretch",
+                hide_index=True,
+                column_config={
+                    "PR-AUC (Validação)": st.column_config.NumberColumn(format="%.3f"),
+                    "ROC-AUC (Validação)": st.column_config.NumberColumn(format="%.3f"),
+                    "PR-AUC (Teste)": st.column_config.NumberColumn(format="%.3f"),
+                    "ROC-AUC (Teste)": st.column_config.NumberColumn(format="%.3f"),
+                },
+            )
+        st.caption(
+            "A seleção de 74 atributos tem desempenho próximo ao conjunto completo de 96; "
+            "o ganho sobre a regra de volume aparece na validação e no teste."
+        )
+        ui.source("Fonte: 15_comparacao_validacao.csv e 16_comparacao_conjuntos.csv.")
+
+    ui.section(
+        "08",
         "O modelo combina quatro famílias de sinal.",
         "A seleção parte de dezenas de atributos físicos. O que entra no ensemble final precisa ser confirmado quanto à disponibilidade antes do despejo.",
     )
@@ -334,6 +466,6 @@ def render() -> None:
             )
 
     ui.source(
-        "Fonte: notebook de modelagem, auditoria de features e relatórios complementares. "
+        "Fonte: notebook de modelagem atualizado, auditoria de features e relatórios de 06/11/2026. "
         "O app não reajusta o modelo; as métricas são as do holdout reportado."
     )

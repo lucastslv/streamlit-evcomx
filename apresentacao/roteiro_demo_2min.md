@@ -6,13 +6,13 @@
 
 Abra a **Visão geral**. Diga os três números:
 
-> “Três em cada dez corridas têm carga alta. Testado nas corridas mais recentes, o modelo avisa seis de cada dez cargas altas. No cenário base, isso vale R$ 1,4 milhão por ano. O pedido é um piloto de oito semanas no pátio.”
+> “Três em cada dez corridas têm carga alta. Testado nas corridas mais recentes, o modelo avisa seis de cada dez cargas altas. No cenário base, isso vale R$ 1,31 milhão por ano. O pedido é um piloto de oito semanas no pátio.”
 
 ## 0:30–1:10 — Caso real de risco alto
 
 Abra **Simulador → Roteiro de demonstração de 2 minutos → 1. Abrir caso de risco alto**.
 
-> “Este é um caso real do holdout: corrida O7085, cesto 2. O ensemble oficial deu 77% de risco; o modelo didático do simulador, 56%. O que puxa o risco é a combinação de pouco material pesado, densidade baixa e muito material leve.”
+> “Este é um caso real do holdout: corrida O7085, cesto 2. O ensemble oficial deu 86% de risco; o modelo didático do simulador, 56%. O que puxa o risco é a combinação de pouco material pesado, densidade baixa e muito material leve.”
 
 Mostre o bloco **“O que puxa o risco”**.
 

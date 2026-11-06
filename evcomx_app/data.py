@@ -99,6 +99,13 @@ def load_cases() -> pd.DataFrame:
     return df
 
 
+def _read_optional(name: str) -> pd.DataFrame:
+    path = config.REPORTS / name
+    if not path.exists():
+        return pd.DataFrame()
+    return _read_csv(path)
+
+
 @st.cache_data(show_spinner=False)
 def load_reports() -> dict[str, pd.DataFrame]:
     return {
@@ -106,9 +113,17 @@ def load_reports() -> dict[str, pd.DataFrame]:
         "por_cesto": _read_csv(config.REPORTS / "03_desempenho_por_cesto.csv"),
         "por_mes": _read_csv(config.REPORTS / "04_desempenho_mensal.csv"),
         "resumo_erros": _read_csv(config.REPORTS / "06_resumo_erros.csv"),
-        "limiares": _read_csv(config.REPORTS / "11_comparacao_limiares.csv"),
-        "v2": _read_csv(config.REPORTS / "10_comparacao_ensemble_original_vs_v2.csv"),
+        "limiares": _read_optional("11_comparacao_limiares.csv"),
+        "v2": _read_optional("10_comparacao_ensemble_original_vs_v2.csv"),
         "auditoria": _read_csv(config.REPORTS / "01_auditoria_features.csv"),
+        "intervalos": _read_optional("07_intervalos_confianca.csv"),
+        "walk_forward": _read_optional("08_walk_forward.csv"),
+        "drift": _read_optional("09_drift.csv"),
+        "custo": _read_optional("12_custo_financeiro.csv"),
+        "modelos_teste": _read_optional("13_comparacao_modelos_teste.csv"),
+        "cenarios": _read_optional("14_cenarios_negocio.csv"),
+        "validacao": _read_optional("15_comparacao_validacao.csv"),
+        "conjuntos": _read_optional("16_comparacao_conjuntos.csv"),
     }
 
 
@@ -251,6 +266,8 @@ def band_stats() -> pd.DataFrame:
 
 @st.cache_data(show_spinner=False)
 def threshold_metrics(threshold: float) -> dict:
+    from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
+
     cases = load_cases()
     y = cases["carga_alta"].astype(int).to_numpy()
     p = cases["probabilidade"].to_numpy()
@@ -262,6 +279,10 @@ def threshold_metrics(threshold: float) -> dict:
     precision = vp / (vp + fp) if (vp + fp) else 0.0
     recall = vp / (vp + fn) if (vp + fn) else 0.0
     f2 = 5 * precision * recall / (4 * precision + recall) if (precision + recall) else 0.0
+    parada = cases["parada_min"].to_numpy()
+    vp_min = float(parada[(pred == 1) & (y == 1)].sum())
+    fn_min = float(parada[(pred == 0) & (y == 1)].sum())
+    total_min = float(parada[y == 1].sum())
     return {
         "threshold": threshold,
         "tn": tn,
@@ -275,6 +296,14 @@ def threshold_metrics(threshold: float) -> dict:
         "accuracy": (tn + vp) / len(y),
         "eventos": int(y.sum()),
         "n": len(y),
+        "pr_auc": float(average_precision_score(y, p)),
+        "roc_auc": float(roc_auc_score(y, p)),
+        "brier": float(brier_score_loss(y, p)),
+        "vp_min": vp_min,
+        "fn_min": fn_min,
+        "total_min": total_min,
+        "vp_min_share": vp_min / total_min if total_min else 0.0,
+        "prevalencia": float(y.mean()),
     }
 
 
@@ -428,6 +457,85 @@ def performance_by_basket() -> pd.DataFrame:
 @st.cache_data(show_spinner=False)
 def performance_by_month() -> pd.DataFrame:
     return load_reports()["por_mes"]
+
+
+@st.cache_data(show_spinner=False)
+def confidence_intervals() -> pd.DataFrame:
+    return load_reports()["intervalos"]
+
+
+@st.cache_data(show_spinner=False)
+def walk_forward() -> pd.DataFrame:
+    return load_reports()["walk_forward"]
+
+
+@st.cache_data(show_spinner=False)
+def drift_table() -> pd.DataFrame:
+    return load_reports()["drift"]
+
+
+@st.cache_data(show_spinner=False)
+def financial_cost() -> pd.DataFrame:
+    return load_reports()["custo"]
+
+
+@st.cache_data(show_spinner=False)
+def model_comparison_test() -> pd.DataFrame:
+    return load_reports()["modelos_teste"]
+
+
+@st.cache_data(show_spinner=False)
+def validation_comparison() -> pd.DataFrame:
+    return load_reports()["validacao"]
+
+
+@st.cache_data(show_spinner=False)
+def feature_set_comparison() -> pd.DataFrame:
+    return load_reports()["conjuntos"]
+
+
+_CENARIO_LABEL = {
+    "1. Conservador": "Conservador",
+    "2. Base (Referência)": "Base",
+    "3. Otimista": "Otimista",
+}
+_CENARIO_PARAMS = {
+    "Conservador": {"sucesso": 0.50, "custo_min": 1500},
+    "Base": {"sucesso": 0.70, "custo_min": 2000},
+    "Otimista": {"sucesso": 0.85, "custo_min": 2500},
+}
+
+
+@st.cache_data(show_spinner=False)
+def business_scenarios() -> pd.DataFrame:
+    raw = load_reports().get("cenarios", pd.DataFrame())
+    if raw.empty:
+        return pd.DataFrame(
+            [
+                {"cenario": "Conservador", "sucesso": 0.50, "custo_min": 1500, "minutos": 212, "modelo": 0.32, "regra_volume": -1.03},
+                {"cenario": "Base", "sucesso": 0.70, "custo_min": 2000, "minutos": 657, "modelo": 1.31, "regra_volume": 0.66},
+                {"cenario": "Otimista", "sucesso": 0.85, "custo_min": 2500, "minutos": 993, "modelo": 2.48, "regra_volume": 2.75},
+            ]
+        )
+    raw = raw.copy()
+    raw["cenario"] = raw["Cenário"].map(_CENARIO_LABEL)
+    ens = raw.loc[raw["Abordagem"].str.contains("Ensemble", na=False)].set_index("cenario")
+    regra = raw.loc[raw["Abordagem"].str.contains("Regra de Volume", na=False)].set_index("cenario")
+    rows = []
+    for cenario in ["Conservador", "Base", "Otimista"]:
+        rows.append(
+            {
+                "cenario": cenario,
+                "sucesso": _CENARIO_PARAMS[cenario]["sucesso"],
+                "custo_min": _CENARIO_PARAMS[cenario]["custo_min"],
+                "minutos": float(ens.loc[cenario, "Ganho Líquido Anual (horas)"]) * 60.0,
+                "modelo": float(ens.loc[cenario, "Impacto Financeiro Anual (R$)"]) / 1_000_000.0,
+                "regra_volume": float(regra.loc[cenario, "Impacto Financeiro Anual (R$)"]) / 1_000_000.0,
+                "modelo_brl": float(ens.loc[cenario, "Impacto Financeiro Anual (R$)"]),
+                "regra_brl": float(regra.loc[cenario, "Impacto Financeiro Anual (R$)"]),
+            }
+        )
+    return pd.DataFrame(rows)
 
 
 @st.cache_data(show_spinner=False)

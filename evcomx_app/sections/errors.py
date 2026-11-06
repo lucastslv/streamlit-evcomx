@@ -14,9 +14,10 @@ def _br(value: float, digits: int = 1) -> str:
 
 def render() -> None:
     cases = data.load_cases()
+    m45 = data.threshold_metrics(0.45)
     ui.hero(
         "ERROS & CASOS · HOLDOUT",
-        "O modelo erra em 4 de cada 10 cargas altas — e os falsos alarmes são cestos de risco.",
+        f"O modelo erra em {m45['fn'] / m45['eventos'] * 10:.0f} de cada 10 cargas altas — e os falsos alarmes são cestos de risco.",
         "Um alerta errado não é só uma métrica: é uma checagem no pátio. Um evento perdido é uma parada que "
         "o forno paga. Esta seção abre os dois lados.",
         "352 cestos · 57 eventos · limiar operacional 0,45",
@@ -24,10 +25,10 @@ def render() -> None:
 
     ui.kpi_row(
         [
-            {"value": "33", "label": "eventos detectados", "note": "VP · 120,8 min de parada antecipados", "tone": "blue"},
-            {"value": "95", "label": "alarmes falsos", "note": "FP · 0 min de parada observada", "tone": "amber"},
-            {"value": "24", "label": "eventos perdidos", "note": "FN · 55,5 min de parada não avisados", "tone": "red"},
-            {"value": "200", "label": "normais acertados", "note": "VN · 0 min de parada", "tone": "green"},
+            {"value": str(m45["vp"]), "label": "eventos detectados", "note": f"VP · {_br(m45['vp_min'])} min de parada antecipados", "tone": "blue"},
+            {"value": str(m45["fp"]), "label": "alarmes falsos", "note": "FP · 0 min de parada observada", "tone": "amber"},
+            {"value": str(m45["fn"]), "label": "eventos perdidos", "note": f"FN · {_br(m45['fn_min'])} min de parada não avisados", "tone": "red"},
+            {"value": str(m45["tn"]), "label": "normais acertados", "note": "VN · 0 min de parada", "tone": "green"},
         ]
     )
 
@@ -50,8 +51,8 @@ def render() -> None:
         ui.source("Fonte: 05_casos_para_investigar.csv. Scores do ensemble original.")
     with right:
         ui.callout(
-            "O modelo não separa perfeitamente os grupos. O ROC-AUC de 0,669 e o PR-AUC de 0,327 "
-            "mostram um sinal útil, mas modesto. O limiar escolhe quais erros a operação prefere.",
+            f"O modelo não separa perfeitamente os grupos. O ROC-AUC de {_br(m45['roc_auc'], 3)} e o PR-AUC de "
+            f"{_br(m45['pr_auc'], 3)} mostram um sinal útil, mas modesto. O limiar escolhe quais erros a operação prefere.",
             kind="blue",
             title="O que o gráfico diz",
         )
@@ -128,8 +129,8 @@ def render() -> None:
     ui.callout(
         "<strong>FP e VP têm perfil físico parecido:</strong> pouca sucata pesada e densidade baixa. "
         "O modelo está sinalizando cestos genuinamente arriscados que, naquele dia, não travaram a tampa. "
-        "Já os <strong>FN</strong> são mais densos e param menos: o fator geométrico de uma peça específica "
-        "não está capturado pela densidade média.",
+        "Já os <strong>FN</strong> têm densidade intermediária, mais pesado e parada média menor: o fator "
+        "geométrico de uma peça específica não está capturado pela densidade média.",
         kind="red",
         title="A leitura operacional dos erros",
     )
@@ -142,11 +143,13 @@ def render() -> None:
     left, right = st.columns([1.05, 0.95], gap="large")
     with left:
         st.plotly_chart(
-            charts.calibration(data.calibration_table(), brier=0.189),
+            charts.calibration(data.calibration_table(), brier=m45["brier"]),
             width="stretch",
             config={"displayModeBar": False},
         )
-        ui.source("Fonte: 05_casos_para_investigar.csv. Brier = 0,189; 8 faixas de quantis.")
+        ui.source(
+            f"Fonte: 05_casos_para_investigar.csv. Brier = {_br(m45['brier'], 3)}; 8 faixas de quantis."
+        )
     with right:
         ui.render_html(
             """
@@ -272,8 +275,6 @@ def render() -> None:
         row = filtered.iloc[labels.index(selected)]
         pct = (cases["probabilidade"] < row["probabilidade"]).mean()
         pill_kind = {"VP": "blue", "FP": "amber", "FN": "red", "VN": "gray"}.get(row["resultado"], "gray")
-        def _br(value: float, digits: int = 1) -> str:
-            return f"{value:,.{digits}f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
         stats = [
             ("Risco do modelo", f"{row['probabilidade']:.1%}".replace(".", ",")),

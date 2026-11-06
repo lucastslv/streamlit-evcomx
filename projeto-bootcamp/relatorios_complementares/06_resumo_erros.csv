@@ -1,5 +1,5 @@
 ﻿tipo_resultado,carregamentos,eventos_reais,minutos_observados,probabilidade_media
-FN — evento não detectado,24,24,55.483333333333334,0.3390079541773768
-FP — alerta sem evento observado,95,0,0.0,0.5371411564031598
-VN — normal corretamente classificado,200,0,0.0,0.3168502127569554
-VP — evento detectado,33,33,120.81666666666666,0.5773275770037513
+FN — evento não detectado,25,25,59.9,0.32430278371617116
+FP — alerta sem evento observado,81,0,0.0,0.5347854807325745
+VN — normal corretamente classificado,214,0,0.0,0.3012582143508085
+VP — evento detectado,32,32,116.4,0.5811333528640575

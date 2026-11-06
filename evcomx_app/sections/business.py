@@ -2,26 +2,35 @@
 
 from __future__ import annotations
 
-import pandas as pd
 import streamlit as st
 
 from .. import charts, config, data, ui
 
 
+def _br(value: float, digits: int = 1) -> str:
+    return f"{value:,.{digits}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
 def render() -> None:
+    m45 = data.threshold_metrics(0.45)
+    scenarios = data.business_scenarios()
+    base = scenarios.loc[scenarios["cenario"] == "Base"].iloc[0]
+    cenario_min = scenarios["modelo"].min()
+    cenario_max = scenarios["modelo"].max()
+    reducao_fp = (291 - m45["fp"]) / 291
     ui.hero(
         "NEGÓCIO & PILOTO",
-        "O piloto vale R$ 1,4 mi por ano no cenário base.",
+        f"O piloto vale R$ {base['modelo']:.1f} mi por ano no cenário base.".replace(".", ","),
         "O modelo não fecha a tampa do forno. Ele compra tempo para o pátio agir. O valor está nos minutos "
         "de parada evitados, descontado o custo de checar os alarmes.",
-        "Faixa de R$ 0,3 a 2,6 mi por ano · premissas de custo a validar com a empresa",
+        f"Faixa de R$ {cenario_min:.1f} a {cenario_max:.1f} mi por ano · premissas de custo a validar com a empresa".replace(".", ","),
     )
 
     ui.kpi_row(
         [
-            {"value": "69%", "label": "do tempo de parada antecipado", "note": "120,8 de 176,3 min no holdout", "tone": "green"},
-            {"value": "−67%", "label": "alarmes falsos vs. regra por volume", "note": "95 contra 291 no teste", "tone": "blue"},
-            {"value": "R$ 1,4 mi", "label": "ganho líquido anual (base)", "note": "R$ 2.000 por minuto de forno parado", "tone": "green"},
+            {"value": f"{m45['vp_min_share']:.0%}", "label": "do tempo de parada antecipado", "note": f"{_br(m45['vp_min'])} de {_br(m45['total_min'])} min no holdout", "tone": "green"},
+            {"value": f"−{reducao_fp:.0%}", "label": "alarmes falsos vs. regra por volume", "note": f"{m45['fp']} contra 291 no teste", "tone": "blue"},
+            {"value": f"R$ {base['modelo']:.1f} mi".replace(".", ","), "label": "ganho líquido anual (base)", "note": "R$ 2.000 por minuto de forno parado", "tone": "green"},
             {"value": "8 semanas", "label": "piloto proposto no pátio", "note": "alerta, ação e comparação com e sem ação", "tone": "amber"},
         ]
     )
@@ -30,13 +39,6 @@ def render() -> None:
         "01",
         "O valor depende de três premissas.",
         "Taxa de sucesso da ação no pátio, custo do minuto parado e custo de checar um alarme falso. O cenário base é o centro da faixa.",
-    )
-    scenarios = pd.DataFrame(
-        [
-            {"cenario": "Conservador", "sucesso": 0.50, "custo_min": 1500, "minutos": 220, "modelo": 0.3, "regra_volume": -1.0},
-            {"cenario": "Base", "sucesso": 0.70, "custo_min": 2000, "minutos": 680, "modelo": 1.4, "regra_volume": 0.7},
-            {"cenario": "Otimista", "sucesso": 0.85, "custo_min": 2500, "minutos": 1030, "modelo": 2.6, "regra_volume": 2.8},
-        ]
     )
     left, right = st.columns([1.15, 0.85], gap="large")
     with left:
@@ -109,6 +111,8 @@ def render() -> None:
         )
     with right:
         bands = data.band_stats().copy()
+        red_rate = float(bands.loc[bands["banda"] == "vermelho", "taxa"].iloc[0])
+        green_rate = float(bands.loc[bands["banda"] == "verde", "taxa"].iloc[0])
         bands["taxa"] = bands["taxa"].map(lambda x: f"{x*100:.1f}".replace(".", ","))
         st.dataframe(
             bands.rename(columns={"banda": "Faixa", "n": "Cestos", "eventos": "Eventos", "taxa": "Taxa de evento (%)"}),
@@ -116,8 +120,8 @@ def render() -> None:
             hide_index=True,
         )
         st.caption(
-            "O vermelho tem 25,8% de evento no holdout; o verde, 4,9%. O amarelo fica no meio. "
-            "A taxa não é uma garantia individual: é a frequência observada na faixa."
+            f"O vermelho tem {_br(red_rate * 100)}% de evento no holdout; o verde, {_br(green_rate * 100)}%. "
+            "O amarelo fica no meio. A taxa não é uma garantia individual: é a frequência observada na faixa."
         )
 
     ui.section(
@@ -150,28 +154,36 @@ def render() -> None:
         "O que pode mudar o resultado.",
         "Três riscos precisam estar no painel de monitoramento desde o primeiro dia.",
     )
+    drift = data.drift_table()
+    if not drift.empty:
+        pesado = drift.loc[drift["Atributo"] == "prop_pesado"].iloc[0]
+        pesado_treino = float(pesado["Mediana (Treino)"]) * 100
+        pesado_teste = float(pesado["Mediana (Teste)"]) * 100
+    else:
+        pesado_treino, pesado_teste = 31.3, 20.3
     c1, c2, c3 = st.columns(3, gap="large")
     with c1:
         st.markdown("#### A receita muda")
         st.markdown(
-            "A proporção de sucata pesada caiu de **31,3%** no treino para **20,3%** no teste. "
-            "O modelo perdeu desempenho fora do tempo. Monitorar a composição mensal e retreinar."
+            f"A proporção de sucata pesada caiu de **{_br(pesado_treino)}%** no treino para "
+            f"**{_br(pesado_teste)}%** no teste. O modelo perdeu desempenho fora do tempo. "
+            "Monitorar a composição mensal e retreinar."
         )
         ui.kpi_row(
             [
-                {"value": "−11,0 p.p.", "label": "de pesado no período recente", "note": "31,3% → 20,3%", "tone": "red"},
+                {"value": f"−{_br(pesado_treino - pesado_teste)} p.p.", "label": "de pesado no período recente", "note": f"{_br(pesado_treino)}% → {_br(pesado_teste)}%", "tone": "red"},
             ]
         )
     with c2:
         st.markdown("#### Alarmes falsos")
         st.markdown(
-            "No limiar 0,45, **95 de 128 alertas** não eram evento. Cada checagem custa tempo. "
+            f"No limiar 0,45, **{m45['fp']} de {m45['alerts']} alertas** não eram evento. Cada checagem custa tempo. "
             "Medir alertas por turno e o tempo real de checagem no piloto."
         )
     with c3:
         st.markdown("#### Causalidade não provada")
         st.markdown(
-            "O modelo encontra associação. **Quatro de cada dez** cargas altas passam sem aviso. "
+            f"O modelo encontra associação. **{m45['fn'] / m45['eventos'] * 10:.0f} de cada 10** cargas altas passam sem aviso. "
             "Só o piloto confirma se a ação no pátio evita a parada."
         )
 
@@ -190,6 +202,59 @@ def render() -> None:
 
     ui.section(
         "05",
+        "O custo financeiro, linha a linha.",
+        "A conta do notebook: custo histórico sem alertas contra o custo residual com o ensemble. "
+        "VP paga a parcela não evitada; FN paga a parada inteira; FP paga a checagem.",
+    )
+    custo = data.financial_cost()
+    if not custo.empty:
+        base_cost = custo.loc[custo["Cenario"].str.contains("Base", na=False)].iloc[0]
+        show_cost = custo[
+            [
+                "Cenario",
+                "Custo sem alertas (R$)",
+                "Custo residual dos VP (R$)",
+                "Custo integral dos FN (R$)",
+                "Custo dos FP (R$)",
+                "CUSTO TOTAL com Ensemble (R$)",
+                "Economia liquida simulada (R$)",
+                "Economia anual projetada x12 (R$)",
+            ]
+        ].copy()
+        for col in show_cost.columns[1:]:
+            show_cost[col] = show_cost[col].map(lambda x: f"R$ {x:,.0f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        st.dataframe(
+            show_cost.rename(
+                columns={
+                    "Cenario": "Cenário",
+                    "Custo sem alertas (R$)": "Sem alertas",
+                    "Custo residual dos VP (R$)": "VP residual",
+                    "Custo integral dos FN (R$)": "FN integral",
+                    "Custo dos FP (R$)": "FP (checagem)",
+                    "CUSTO TOTAL com Ensemble (R$)": "Com ensemble",
+                    "Economia liquida simulada (R$)": "Economia/mês",
+                    "Economia anual projetada x12 (R$)": "Economia/ano",
+                }
+            ),
+            width="stretch",
+            hide_index=True,
+        )
+        ui.callout(
+            f"No cenário base, o custo sem alertas seria <strong>{show_cost.loc[base_cost.name, 'Custo sem alertas (R$)']}</strong>; "
+            f"com o ensemble, <strong>{show_cost.loc[base_cost.name, 'CUSTO TOTAL com Ensemble (R$)']}</strong>. "
+            f"A economia simulada é de <strong>{show_cost.loc[base_cost.name, 'Economia liquida simulada (R$)']}</strong> "
+            f"por mês, ou <strong>{show_cost.loc[base_cost.name, 'Economia anual projetada x12 (R$)']}</strong> por ano. "
+            "São hipóteses de eficácia e custo, não economia observada.",
+            kind="green",
+            title="A conta do cenário base",
+        )
+    ui.source(
+        "Fonte: 12_custo_financeiro.csv. Anualização ×12 sem sazonalidade; premissas de sucesso e de checagem "
+        "são hipóteses do projeto."
+    )
+
+    ui.section(
+        "06",
         "O que precisa ser decidido.",
         "O pedido é um piloto, não uma implantação definitiva.",
     )

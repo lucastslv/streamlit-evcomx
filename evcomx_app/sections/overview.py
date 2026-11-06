@@ -19,8 +19,17 @@ def _go_demo() -> None:
     st.session_state.sim_demo_open = True
 
 
+def _br(value: float, digits: int = 1) -> str:
+    return f"{value:,.{digits}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
 def render() -> None:
     s = data.summary()
+    m45 = data.threshold_metrics(0.45)
+    scenarios = data.business_scenarios()
+    base = scenarios.loc[scenarios["cenario"] == "Base"].iloc[0]
+    cenario_min = scenarios["modelo"].min()
+    cenario_max = scenarios["modelo"].max()
     horas = f"{s['horas_paradas']:.1f}".replace(".", ",")
     mediana = f"{s['parada_mediana_min']:.1f}".replace(".", ",")
     ui.hero(
@@ -47,21 +56,25 @@ def render() -> None:
                 "tone": "red",
             },
             {
-                "value": "6 em 10",
+                "value": f"{m45['recall'] * 10:.0f} em 10",
                 "label": "cargas altas avisadas antes do despejo",
-                "note": "33 de 57 eventos no holdout; 57,9% de recall com limiar 0,45",
+                "note": f"{m45['vp']} de {m45['eventos']} eventos no holdout; {m45['recall']:.1%} de recall com limiar 0,45".replace(".", ","),
                 "tone": "blue",
             },
             {
-                "value": "R$ 1,4 mi",
+                "value": f"R$ {base['modelo']:.1f} mi".replace(".", ","),
                 "label": "ganho líquido por ano",
-                "note": "cenário base; faixa de R$ 0,3 a 2,6 mi por ano",
+                "note": f"cenário base; faixa de R$ {cenario_min:.1f} a {cenario_max:.1f} mi por ano".replace(".", ","),
                 "tone": "green",
             },
         ]
     )
 
-    ui.source("Os três números-âncora: <strong>3 em 10</strong> corridas · <strong>6 em 10</strong> cargas altas avisadas · <strong>R$ 1,4 mi</strong> por ano no cenário base.")
+    ui.source(
+        f"Os três números-âncora: <strong>3 em 10</strong> corridas · "
+        f"<strong>{m45['recall'] * 10:.0f} em 10</strong> cargas altas avisadas · "
+        f"<strong>R$ {base['modelo']:.1f} mi</strong> por ano no cenário base.".replace(".", ",")
+    )
     ui.callout(
         "Aprovar um <strong>piloto de 8 semanas</strong> no pátio de metálicos, com o semáforo como aviso e ação nos cestos vermelhos. "
         "Dono, custo e acesso aos dados da balança precisam ser definidos com a empresa.",
@@ -161,13 +174,13 @@ def render() -> None:
         "O que o holdout mostra",
         "O teste usa as 180 corridas mais recentes, que o modelo nunca viu. O limiar operacional é 0,45.",
     )
-    m = data.threshold_metrics(0.45)
+    m = m45
     mcols = st.columns(4)
     metrics = [
         ("Recall", f"{m['recall']:.1%}".replace(".", ","), "cargas altas avisadas"),
         ("Precisão", f"{m['precision']:.1%}".replace(".", ","), "alertas que eram evento"),
-        ("PR-AUC", "0,327", "vs. 0,162 de prevalência"),
-        ("ROC-AUC", "0,669", "capacidade de separação"),
+        ("PR-AUC", _br(m["pr_auc"], 3), f"vs. {_br(m['prevalencia'], 3)} de prevalência"),
+        ("ROC-AUC", _br(m["roc_auc"], 3), "capacidade de separação"),
     ]
     for col, (label, value, note) in zip(mcols, metrics):
         with col:
@@ -180,8 +193,9 @@ def render() -> None:
         ui.render_html(
             f"<p style='font-size:0.82rem;color:#6E685D;line-height:1.55;'>"
             f"O modelo avisou <strong>{m['vp']} de {m['eventos']} eventos</strong> e antecipou "
-            f"<strong>69% de todo o tempo de parada</strong> (120,8 de 176,3 min). "
-            f"Os 95 alarmes falsos são o custo operacional do alerta.</p>"
+            f"<strong>{m['vp_min_share']:.0%} de todo o tempo de parada</strong> "
+            f"({_br(m['vp_min'])} de {_br(m['total_min'])} min). "
+            f"Os {m['fp']} alarmes falsos são o custo operacional do alerta.</p>"
         )
     with right:
         ui.chart_header(
@@ -189,11 +203,13 @@ def render() -> None:
             "Quanto mais alertas, maior o recall e menor a precisão. A escolha do limiar é uma decisão operacional.",
         )
         st.plotly_chart(
-            charts.pr_curve(data.pr_curve(), ap=0.327),
+            charts.pr_curve(data.pr_curve(), ap=m["pr_auc"]),
             width="stretch",
             config={"displayModeBar": False},
         )
-        ui.source("Fonte: 05_casos_para_investigar.csv (holdout de 352 cestos). PR-AUC = 0,327.")
+        ui.source(
+            f"Fonte: 05_casos_para_investigar.csv (holdout de 352 cestos). PR-AUC = {_br(m['pr_auc'], 3)}."
+        )
         st.button(
             "Explorar o modelo e o limiar →",
             key="ov_model",

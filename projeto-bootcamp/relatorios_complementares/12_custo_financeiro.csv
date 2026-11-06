@@ -1,0 +1,4 @@
+﻿Cenario,VP,FP,FN,VN,Minutos reais de parada (VP),Minutos reais de parada (FN),Custo sem alertas (R$),Custo residual dos VP (R$),Custo integral dos FN (R$),Custo dos FP (R$),CUSTO TOTAL com Ensemble (R$),Economia liquida simulada (R$),Economia anual projetada x12 (R$)
+1. Conservador,32,81,25,214,116.4,59.9,264450.0,87300.0,89850.0,60750.0,237900.0,26550.0,318600.0
+2. Base (Referência),32,81,25,214,116.4,59.9,352600.0,69840.0,119800.0,53460.0,243100.0,109500.0,1314000.0
+3. Otimista,32,81,25,214,116.4,59.9,440750.0,43650.0,149750.0,40500.0,233900.0,206850.0,2482200.0

@@ -738,6 +738,68 @@ def contribution_bars(df: pd.DataFrame) -> go.Figure:
     return _base(fig, height=max(260, 36 * len(d)))
 
 
+def walk_forward_chart(df: pd.DataFrame) -> go.Figure:
+    d = df.copy().reset_index(drop=True)
+    x = [f"Bloco {i + 2}" for i in range(len(d))]
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=d["ROC-AUC"],
+            mode="lines+markers",
+            name="ROC-AUC",
+            line=dict(color=config.BLUE, width=2.2),
+            marker=dict(size=8),
+            hovertemplate="%{x}<br>ROC-AUC: %{y:.3f}<extra></extra>",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=x,
+            y=d["PR-AUC"],
+            mode="lines+markers",
+            name="PR-AUC",
+            line=dict(color=config.RED, width=2.2, dash="dot"),
+            marker=dict(size=8, symbol="square"),
+            hovertemplate="%{x}<br>PR-AUC: %{y:.3f}<extra></extra>",
+        )
+    )
+    fig.update_yaxes(title="métrica fora da amostra", range=[0, 1], tickformat=".2f")
+    fig.update_xaxes(title=None)
+    return _base(fig, height=320, showlegend=True)
+
+
+def confidence_chart(df: pd.DataFrame) -> go.Figure:
+    d = df.copy()
+    labels = d["Métrica no Teste (Ensemble)"].str.replace(" (Average Precision)", "", regex=False)
+    labels = labels.str.replace(" @ 0,45", "", regex=False)
+    fig = go.Figure(
+        go.Scatter(
+            x=d["Estimativa Pontual"],
+            y=labels,
+            mode="markers",
+            marker=dict(size=10, color=config.RED),
+            error_x=dict(
+                type="data",
+                symmetric=False,
+                array=d["IC 95% Superior"] - d["Estimativa Pontual"],
+                arrayminus=d["Estimativa Pontual"] - d["IC 95% Inferior"],
+                color=config.GRAY,
+                thickness=2,
+                width=6,
+            ),
+            hovertemplate=(
+                "<b>%{y}</b><br>estimativa: %{x:.3f}<br>"
+                "IC 95%: %{customdata[0]:.3f}–%{customdata[1]:.3f}<extra></extra>"
+            ),
+            customdata=d[["IC 95% Inferior", "IC 95% Superior"]].to_numpy(),
+        )
+    )
+    fig.update_xaxes(title="valor da métrica", range=[0, 1], tickformat=".2f")
+    fig.update_yaxes(title=None)
+    return _base(fig, height=300)
+
+
 def family_bars(df: pd.DataFrame) -> go.Figure:
     d = df.copy()
     colors = [config.RED if v > 0 else config.BLUE for v in d["contrib"]]

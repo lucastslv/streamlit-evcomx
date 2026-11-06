@@ -35,8 +35,15 @@ def render() -> None:
             ("03_desempenho_por_cesto.csv", "2 × 10", "Recall, precisão e PR-AUC por cesto."),
             ("04_desempenho_mensal.csv", "2 × 10", "Desempenho por mês no holdout."),
             ("06_resumo_erros.csv", "4 × 5", "Resumo de VP, FP, FN e VN."),
-            ("10 e 11_comparação...", "2 arquivos", "Ensemble original vs. v2 e estratégias de limiar."),
-            ("evcomx_carga_alta_pipeline.joblib", "1,4 MB", "Artefato do ensemble preservado no projeto original."),
+            ("07_intervalos_confianca.csv", "5 × 4", "Bootstrap de PR-AUC, ROC-AUC, recall, precisão e F2."),
+            ("08_walk_forward.csv", "5 × 5", "Backtesting temporal em cinco blocos."),
+            ("09_drift.csv", "5 × 6", "Teste KS de composição entre treino e teste."),
+            ("12_custo_financeiro.csv", "3 × 14", "Custo sem alertas, residual e economia simulada."),
+            ("13_comparacao_modelos_teste.csv", "9 × 10", "Todos os modelos avaliados no mesmo holdout."),
+            ("14_cenarios_negocio.csv", "6 × 8", "Ensemble e regra por volume nos três cenários."),
+            ("15 e 16_comparação...", "2 arquivos", "Validação temporal e conjuntos de atributos."),
+            ("10 e 11_comparação...", "2 arquivos", "Histórico: ensemble original vs. v2 e estratégias de limiar."),
+            ("evcomx_carga_alta_pipeline.joblib", "1,4 MB", "Artefato do ensemble da rodada anterior, preservado."),
         ],
         columns=["Arquivo", "Dimensão", "Uso no app"],
     )
@@ -81,7 +88,8 @@ def render() -> None:
         """
         - **Split**: 75% das corridas para treino, 15% para validação e 10% para teste (as mais recentes).
         - **Validação cruzada**: `StratifiedGroupKFold` com 5 folds, agrupado por `cd_corrida`.
-        - **Seleção**: variância, colinearidade (|r| > 0,85) e relevância univariada só no treino.
+        - **Seleção**: 74 atributos escolhidos entre 96 candidatas; variância, colinearidade (|r| > 0,85) e relevância univariada só no treino.
+        - **Capacidade volumétrica**: P90 do volume no treino vira referência para a razão volume/capacidade do cestão.
         - **Modelo**: `VotingClassifier` soft com regressão logística, gradient boosting e random forest.
         - **Métrica de escolha**: F2, que dá o dobro de peso ao recall. Em operação, perder um evento custa mais que um alarme falso.
         - **Teste**: 180 corridas, 352 cestos e 57 eventos; lido uma única vez.
@@ -207,10 +215,16 @@ uv run streamlit run app.py""",
     )
 
     ui.callout(
-        "O artefato do ensemble em <code>projeto-bootcamp/models/</code> foi preservado como registro do pipeline. "
-        "As métricas oficiais e os scores do holdout usados neste app vêm dos relatórios gerados na mesma execução. "
-        "O simulador usa um modelo didático separado, declarado como tal.",
+        "Os relatórios e os scores do holdout foram regenerados a partir do notebook atualizado, com o ambiente "
+        "do app (scikit-learn 1.6.1). O artefato <code>.joblib</code> em <code>projeto-bootcamp/models/</code> é da "
+        "rodada anterior e fica preservado como registro; o app não o usa para prever. O simulador usa um modelo "
+        "didático separado, declarado como tal.",
         kind="blue",
         title="Rastreabilidade",
+    )
+    ui.source(
+        "Nota de reprodutibilidade: a reexecução local de 06/11/2026 reproduz o pipeline do notebook, mas pode "
+        "diferir nos últimos décimos das métricas impressas no Colab por versão de biblioteca. "
+        "Os arquivos em relatorios_complementares/ são a fonte usada pelo app."
     )
     ui.source("Projeto EVCOMX · modelagem preditiva de carga alta · novembro de 2026.")

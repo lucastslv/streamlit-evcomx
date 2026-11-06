@@ -93,11 +93,17 @@ requirements.txt / runtime.txt suporte ao Streamlit Community Cloud
 
 ## Nota metodológica
 
-As métricas oficiais do ensemble (PR-AUC 0,327; ROC-AUC 0,669; recall 57,9% e precisão 25,8% no
-limiar 0,45) vêm dos relatórios complementares em `projeto-bootcamp/relatorios_complementares/`.
+As métricas oficiais do ensemble (PR-AUC 0,350; ROC-AUC 0,687; recall 56,1% e precisão 28,3% no
+limiar 0,45; 32 VP, 81 FP, 25 FN e 214 VN) vêm dos relatórios complementares atualizados em
+`projeto-bootcamp/relatorios_complementares/`, regenerados a partir do notebook de modelagem em
+06/11/2026. O cenário base do piloto vale R$ 1,31 mi por ano, com faixa de R$ 0,32 a 2,48 mi.
 O simulador do app é uma **regressão logística didática** treinada nos 3.149 cestos fora do holdout,
 com PR-AUC 0,369 e ROC-AUC 0,664 no mesmo teste. Ele existe para permitir edição em tempo real e
 não substitui o ensemble oficial.
+
+A reexecução local usa o ambiente do app (scikit-learn 1.6.1). Pequenas diferenças nos últimos
+décimos em relação às métricas impressas no Colab são esperadas por versão de biblioteca; os
+arquivos em `relatorios_complementares/` são a fonte usada pelo app.
 
 A análise é observacional. O piloto de 8 semanas no pátio é o teste que falta para separar
 associação de causalidade.

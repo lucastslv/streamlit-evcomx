@@ -1,0 +1,7 @@
+﻿Cenário,Abordagem,VP (Eventos Detectados),FP (Alarmes Falsos),Minutos Brutos em VP,Ganho Líquido Mensal (min),Ganho Líquido Anual (horas),Impacto Financeiro Anual (R$)
+1. Conservador,"Ensemble ML (@ 0,45)",32/57,81,116.4,17.700000000000003,3.5400000000000005,318600.00000000006
+1. Conservador,Baseline: Regra de Volume,57/57,291,176.3,-57.349999999999994,-11.469999999999999,-1032299.9999999999
+2. Base (Referência),"Ensemble ML (@ 0,45)",32/57,81,116.4,54.75,10.95,1314000.0
+2. Base (Referência),Baseline: Regra de Volume,57/57,291,176.3,27.379999999999995,5.475999999999999,657119.9999999999
+3. Otimista,"Ensemble ML (@ 0,45)",32/57,81,116.4,82.74,16.548,2482199.9999999995
+3. Otimista,Baseline: Regra de Volume,57/57,291,176.3,91.65500000000002,18.331000000000003,2749650.0000000005
