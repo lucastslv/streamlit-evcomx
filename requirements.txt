@@ -1,0 +1,11 @@
+# Dependências do app para deploy no Streamlit Community Cloud.
+# O ambiente local usa uv (pyproject.toml + uv.lock); este arquivo é o
+# equivalente para plataformas que instalam via pip.
+streamlit==1.67.0
+pandas==2.3.3
+numpy==2.2.6
+plotly==7.1.0
+scikit-learn==1.6.1
+joblib==1.6.0
+pyarrow==26.0.1
+tzdata==2026.6

@@ -1,0 +1,4 @@
+table,file,rows,columns,bytes,sha256
+materials,infos_materiais.csv,30,4,763,ec942ebeb2a712f0680e795b5b70baaec5e11da9a21ab4cba19bd176bfa929fc
+layers,infos_camadas.csv,43405,9,3442296,b4e09397bd3c6456b4d3dd584fca4d4d8b855c9a8394c9826417e5e9f0cf8938
+response,VariavelResposta.csv,1799,7,34516,494b90aa8014db4208801faee4509d329d945282d84854b0fee32623a8d9b390

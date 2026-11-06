@@ -1,0 +1,2 @@
+﻿modelo,limiar,n_teste,eventos_reais,alertas_emitidos,verdadeiros_negativos,falsos_positivos,falsos_negativos,verdadeiros_positivos,precisao,recall,F2,balanced_accuracy,PR_AUC,ROC_AUC,Brier
+9. Ensemble (LogReg + GB + RF),0.45,352,57,128,200,95,24,33,0.2578125,0.5789473684210527,0.46348314606741575,0.6284567350579839,0.32699997890880017,0.6685102586975914,0.1894295598274022

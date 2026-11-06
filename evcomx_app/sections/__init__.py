@@ -1,0 +1,1 @@
+"""Seções narrativas do app."""

@@ -1,0 +1,17 @@
+[project]
+name = "evcomx-carga-alta"
+version = "0.1.0"
+description = "App Streamlit sobre predição de carga alta no forno elétrico a arco da EVCOMX"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Lucas Telles" },
+]
+dependencies = [
+    "joblib>=1.6.0",
+    "numpy<2.3",
+    "pandas<3",
+    "plotly>=7.1.0",
+    "scikit-learn==1.6.1",
+    "streamlit>=1.67.0",
+]

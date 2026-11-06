@@ -1,0 +1,94 @@
+{
+  "reference": "data/Guia_EVCOMX_EDA.pdf",
+  "random_seed": 2026,
+  "versions": {
+    "python": "3.14.7",
+    "pandas": "3.0.6",
+    "numpy": "2.5.3",
+    "matplotlib": "3.11.2",
+    "seaborn": "0.13.2"
+  },
+  "source_files": [
+    {
+      "table": "materials",
+      "file": "infos_materiais.csv",
+      "rows": 30,
+      "columns": 4,
+      "bytes": 763,
+      "sha256": "ec942ebeb2a712f0680e795b5b70baaec5e11da9a21ab4cba19bd176bfa929fc"
+    },
+    {
+      "table": "layers",
+      "file": "infos_camadas.csv",
+      "rows": 43405,
+      "columns": 9,
+      "bytes": 3442296,
+      "sha256": "b4e09397bd3c6456b4d3dd584fca4d4d8b855c9a8394c9826417e5e9f0cf8938"
+    },
+    {
+      "table": "response",
+      "file": "VariavelResposta.csv",
+      "rows": 1799,
+      "columns": 7,
+      "bytes": 34516,
+      "sha256": "494b90aa8014db4208801faee4509d329d945282d84854b0fee32623a8d9b390"
+    }
+  ],
+  "assumptions": {
+    "raw_weight_unit": "kg (confirm with source owner)",
+    "density_unit": "t/m3",
+    "yield": "fraction, not percentage points",
+    "timestamps": "UTC from source Z suffix",
+    "local_timezone": "America/Sao_Paulo",
+    "illustrative_shifts": [
+      "06–14",
+      "14–22",
+      "22–06"
+    ],
+    "volume": "additive mass_t / dictionary_density; missing if mass coverage is incomplete",
+    "active_layers": "distinct positive-weight layer positions, charges 1 and 2",
+    "duplicates": "only identical source rows removed; other repeated positions retained"
+  },
+  "basket_predictor_candidates": [
+    "weight_t",
+    "volume_est_m3",
+    "effective_density_t_m3",
+    "layer_count",
+    "material_count",
+    "light_share",
+    "heavy_share",
+    "mixed_share",
+    "bottom_light_share",
+    "top_light_share",
+    "middle_light_share_total",
+    "energy_weighted_kwh_t",
+    "yield_weighted_fraction"
+  ],
+  "heat_predictor_candidates_for_retrospective_eda": [
+    "solid_weight_t",
+    "solid_volume_est_m3",
+    "solid_effective_density_t_m3",
+    "solid_layer_count",
+    "solid_material_count",
+    "solid_light_share",
+    "solid_heavy_share",
+    "solid_energy_weighted_kwh_t",
+    "c1_top_light_share",
+    "c2_top_light_share"
+  ],
+  "exclude_from_predictors": [
+    "cd_corrida",
+    "is_carga_alta",
+    "is_carga_alta_carregamento_1",
+    "is_carga_alta_carregamento_2",
+    "qt_segundos_parada_carga_alta",
+    "qt_segundos_duracao_parada_carregamento_1",
+    "qt_segundos_duracao_parada_carregamento_2",
+    "downtime_seconds",
+    "feature_match",
+    "heat_start_utc",
+    "heat_start_local"
+  ],
+  "availability_note": "All candidates require confirmation of availability before the selected charge decision. Do not use full-heat/c2 information for charge-1 prediction unless already known.",
+  "outcome_units": "seconds"
+}

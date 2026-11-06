@@ -1,0 +1,33 @@
+.venv/
+**/.venv/
+**/__pycache__/
+**/*.py[cod]
+**/.git/
+**/.pytest_cache/
+**/.ruff_cache/
+**/*.ipynb
+**/*.pdf
+**/*.pptx
+**/*.docx
+**/*.xlsx
+**/*.html
+
+# Pastas de apresentação e material não usado em runtime
+apresentacao/
+deploy/
+dados-bootcamp/notebooks/
+dados-bootcamp/output/
+dados-bootcamp/tmp/
+dados-bootcamp/data/raw/
+projeto-bootcamp/notebooks/
+projeto-bootcamp/entregaveis/
+projeto-bootcamp/Relatórios/
+projeto-bootcamp/data/external/
+projeto-bootcamp/data/bootcamp.md
+projeto-bootcamp/data/script.md
+
+# Segredos e arquivos locais
+.streamlit/secrets.toml
+.DS_Store
+tmp/
+out/

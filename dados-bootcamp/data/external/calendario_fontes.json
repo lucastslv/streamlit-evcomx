@@ -1,0 +1,18 @@
+{
+  "fonte": "BrasilAPI",
+  "documentacao": "https://brasilapi.com.br/docs",
+  "coletado_em_utc": "2026-10-07T14:26:56.860943+00:00",
+  "arquivos": [
+    {
+      "arquivo": "brasilapi_calendario_2025.json",
+      "url": "https://brasilapi.com.br/api/feriados/v1/2025",
+      "registros": 14
+    },
+    {
+      "arquivo": "brasilapi_calendario_2026.json",
+      "url": "https://brasilapi.com.br/api/feriados/v1/2026",
+      "registros": 14
+    }
+  ],
+  "observacao": "Datas especiais do calendário da API. A categoria national inclui datas como Carnaval e Páscoa; não representa obrigatoriedade de fechamento da planta. Nenhuma localidade foi presumida."
+}

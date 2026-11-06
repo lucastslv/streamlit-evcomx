@@ -1,0 +1,46 @@
+# Python / uv
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Apresentações e documentos grandes (ficam no Moodle, não no app)
+*.pdf
+*.pptx
+*.docx
+*.xlsx
+*.html
+dados-bootcamp/output/
+projeto-bootcamp/entregaveis/
+projeto-bootcamp/Relatórios/
+
+# Temporários
+tmp/
+out/
+dados-bootcamp/tmp/
+
+# Variáveis locais de deploy
+.env
+deploy/.env
+
+# Backup do repositório aninhado que foi removido
+*.git.backup/
+git-backups/
